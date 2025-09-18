@@ -26,9 +26,32 @@ const app = new Hono<{ Bindings: Env }>();
 app.use('*', logger());
 app.use('*', prettyJSON());
 app.use('*', cors({
-  origin: (origin) => {
-    // Allow localhost and your frontend domain
-    return origin?.includes('localhost') || origin?.includes('begins-guide') || true;
+  origin: (origin, c) => {
+    // Get allowed origins from environment
+    const frontendUrl = c.env?.FRONTEND_URL;
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'https://localhost:3000',
+      'https://localhost:5173',
+      frontendUrl,
+      'https://2663018e.begins-ebook-guide.pages.dev'
+    ].filter(Boolean);
+
+    // Allow requests without origin (like mobile apps, Postman, etc.)
+    if (!origin) return '*';
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.some(allowed => origin === allowed || origin.includes('begins-guide'))) {
+      return origin;
+    }
+    
+    // For development, allow localhost
+    if (origin.includes('localhost')) {
+      return origin;
+    }
+    
+    return false; // Reject other origins
   },
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
