@@ -1,0 +1,23 @@
+name = "begins-guide-api"
+main = "src/index.ts"
+compatibility_date = "2024-11-06"
+
+[env.production]
+name = "begins-guide-api"
+
+[env.staging]
+name = "begins-guide-api-staging"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "begins-guide-db"
+database_id = "your-database-id-here"
+
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "begins-guide-files"
+
+[vars]
+JWT_SECRET = "your-jwt-secret-here"
+STRIPE_SECRET_KEY = "your-stripe-secret-key"
+FRONTEND_URL = "http://localhost:8080"
