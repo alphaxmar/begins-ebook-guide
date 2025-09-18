@@ -1,7 +1,7 @@
 import { QueryClient } from '@tanstack/react-query';
 
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://begins-guide-api.alphaxmar.workers.dev/api';
 
 // Create Query Client
 export const queryClient = new QueryClient({

@@ -1,6 +1,7 @@
 name = "begins-guide-api"
 main = "src/index.ts"
 compatibility_date = "2024-11-06"
+compatibility_flags = ["nodejs_compat"]
 
 [env.production]
 name = "begins-guide-api"
@@ -11,13 +12,13 @@ name = "begins-guide-api-staging"
 [[d1_databases]]
 binding = "DB"
 database_name = "begins-guide-db"
-database_id = "your-database-id-here"
+database_id = "803906bf-9a79-4d08-a211-4d591098fdcf"
 
 [[r2_buckets]]
 binding = "STORAGE"
 bucket_name = "begins-guide-files"
 
 [vars]
-JWT_SECRET = "your-jwt-secret-here"
-STRIPE_SECRET_KEY = "your-stripe-secret-key"
-FRONTEND_URL = "http://localhost:8080"
+JWT_SECRET = "begins-guide-super-secret-jwt-key-2024"
+STRIPE_SECRET_KEY = "sk_test_your-stripe-secret-key"
+FRONTEND_URL = "https://e83ea425.begins-ebook-guide.pages.dev"
