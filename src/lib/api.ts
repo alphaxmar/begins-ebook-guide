@@ -66,7 +66,7 @@ class ApiClient {
     password: string;
     firstName: string;
     lastName: string;
-    role?: 'buyer' | 'seller';
+    role?: 'user' | 'seller';
   }) {
     return this.request('/auth/register', {
       method: 'POST',
@@ -258,7 +258,7 @@ export interface User {
   firstName: string;
   lastName: string;
   phone?: string;
-  role: 'buyer' | 'seller' | 'admin';
+  role: 'user' | 'seller' | 'admin';
   createdAt: string;
 }
 

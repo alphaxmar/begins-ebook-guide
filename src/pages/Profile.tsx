@@ -94,7 +94,7 @@ export default function Profile() {
         return 'destructive';
       case 'seller':
         return 'default';
-      case 'buyer':
+      case 'user':
         return 'secondary';
       default:
         return 'outline';
@@ -107,7 +107,7 @@ export default function Profile() {
         return 'ผู้ดูแลระบบ';
       case 'seller':
         return 'ผู้ขาย';
-      case 'buyer':
+      case 'user':
         return 'ผู้ซื้อ';
       default:
         return role;

@@ -16,7 +16,7 @@ export default function Register() {
     confirmPassword: '',
     firstName: '',
     lastName: '',
-    role: 'buyer' as 'buyer' | 'seller',
+    role: 'user' as 'user' | 'seller',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -195,8 +195,8 @@ export default function Register() {
                   className="flex flex-col space-y-2"
                 >
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="buyer" id="buyer" />
-                    <Label htmlFor="buyer" className="cursor-pointer">
+                    <RadioGroupItem value="user" id="user" />
+                    <Label htmlFor="user" className="cursor-pointer">
                       ผู้ซื้อ - สำหรับการซื้อและอ่านหนังสือ
                     </Label>
                   </div>

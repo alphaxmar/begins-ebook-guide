@@ -72,7 +72,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     password: string;
     firstName: string;
     lastName: string;
-    role?: 'buyer' | 'seller';
+    role?: 'user' | 'seller';
   }) => {
     try {
       const response = await api.register(data);
