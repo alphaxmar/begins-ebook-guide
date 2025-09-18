@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { api, getAuthToken, setAuthToken, removeAuthToken, User } from '@/lib/api';
+import { handleError, parseApiError, ErrorType } from '@/lib/errorHandler';
 
 interface AuthContextType {
   user: User | null;
@@ -7,6 +8,7 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<void>;
   logout: () => void;
   loading: boolean;
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -39,7 +41,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(response.user);
         } catch (error) {
           console.error('Failed to load user profile:', error);
-          removeAuthToken();
+          
+          // Parse error to check if it's authentication related
+          const appError = parseApiError(error);
+          if (appError.type === ErrorType.AUTHENTICATION) {
+            // Token is invalid, remove it
+            removeAuthToken();
+          }
+          // Don't show error toast on initial load
         }
       }
       setIsLoading(false);
@@ -63,6 +72,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(response.user);
       }
     } catch (error) {
+      // Re-throw error to be handled by the calling component
       throw error;
     }
   };
@@ -79,6 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setAuthToken(response.token);
       setUser(response.user);
     } catch (error) {
+      // Re-throw error to be handled by the calling component
       throw error;
     }
   };
@@ -103,7 +114,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const value: AuthContextType = {
     user,
-    isLoading,
+    loading: isLoading,
     isAuthenticated,
     login,
     register,

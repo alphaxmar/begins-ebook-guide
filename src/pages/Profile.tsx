@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { handleError, validateFormData } from '@/lib/errorHandler';
 
 export default function Profile() {
   const { user, updateProfile, isAuthenticated } = useAuth();
@@ -34,19 +35,14 @@ export default function Profile() {
   };
 
   const handleSave = async () => {
-    if (!formData.name.trim()) {
-      toast.error('กรุณากรอกชื่อ');
-      return;
-    }
+    // Validate form data
+    const validation = validateFormData(formData, {
+      name: { required: true, message: 'กรุณากรอกชื่อ' },
+      email: { required: true, type: 'email', message: 'กรุณากรอกอีเมลที่ถูกต้อง' }
+    });
 
-    if (!formData.email.trim()) {
-      toast.error('กรุณากรอกอีเมล');
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      toast.error('รูปแบบอีเมลไม่ถูกต้อง');
+    if (!validation.isValid) {
+      validation.errors.forEach(error => toast.error(error));
       return;
     }
 
@@ -61,7 +57,7 @@ export default function Profile() {
       }
     } catch (error) {
       console.error('Profile update error:', error);
-      toast.error('เกิดข้อผิดพลาดในการอัปเดตข้อมูล');
+      handleError(error, 'เกิดข้อผิดพลาดในการอัปเดตข้อมูล');
     } finally {
       setIsLoading(false);
     }

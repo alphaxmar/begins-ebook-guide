@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { handleError } from '@/lib/errorHandler';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -66,12 +67,14 @@ export default function Register() {
         password: formData.password,
         firstName: formData.firstName,
         lastName: formData.lastName,
-        role: formData.role,
+        role: formData.role as 'user' | 'seller'
       });
-      toast.success('สมัครสมาชิกสำเร็จ');
+      
+      toast.success('สมัครสมาชิกสำเร็จ!');
       navigate('/');
     } catch (error: any) {
-      toast.error(error.message || 'สมัครสมาชิกไม่สำเร็จ');
+      console.error('Registration error:', error);
+      handleError(error, 'เกิดข้อผิดพลาดในการสมัครสมาชิก');
     } finally {
       setIsLoading(false);
     }

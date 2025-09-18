@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
+import { withRetry, createAppError, ErrorType } from './errorHandler';
 
 // API Configuration
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://begins-guide-api.alphaxmar.workers.dev/api';
@@ -8,7 +9,17 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: 1,
+      retry: (failureCount, error: any) => {
+        // Don't retry on certain error types
+        if (error?.message?.includes('401') || error?.message?.includes('403')) {
+          return false;
+        }
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    },
+    mutations: {
+      retry: false, // Don't retry mutations by default
     },
   },
 });
@@ -36,28 +47,76 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    useRetry: boolean = false
   ): Promise<T> {
-    const url = `${this.baseURL}${endpoint}`;
-    const token = getAuthToken();
+    const makeRequest = async (): Promise<T> => {
+      const url = `${this.baseURL}${endpoint}`;
+      const token = getAuthToken();
 
-    const config: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-        ...options.headers,
-      },
-      ...options,
+      const config: RequestInit = {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+          ...options.headers,
+        },
+        ...options,
+      };
+
+      let response: Response;
+      
+      try {
+        response = await fetch(url, config);
+      } catch (error) {
+        // Network error
+        throw createAppError(
+          ErrorType.NETWORK,
+          'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
+          error as Error
+        );
+      }
+
+      // Handle different status codes
+      if (!response.ok) {
+        let errorData: any = {};
+        
+        try {
+          errorData = await response.json();
+        } catch {
+          // If response is not JSON, create a generic error
+          errorData = { error: `HTTP error! status: ${response.status}` };
+        }
+
+        // Create detailed error based on status code
+        const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+        
+        // Add status code to error message for parsing
+        error.message = `${error.message} (status: ${response.status})`;
+        
+        // Add details for validation errors
+        if (response.status === 400 && errorData.details) {
+          (error as any).details = errorData.details;
+        }
+
+        throw error;
+      }
+
+      try {
+        return await response.json();
+      } catch (error) {
+        throw createAppError(
+          ErrorType.SERVER,
+          'ไม่สามารถประมวลผลข้อมูลจากเซิร์ฟเวอร์ได้',
+          error as Error
+        );
+      }
     };
 
-    const response = await fetch(url, config);
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    if (useRetry) {
+      return withRetry(makeRequest, 3, 1000);
     }
 
-    return response.json();
+    return makeRequest();
   }
 
   // Auth endpoints

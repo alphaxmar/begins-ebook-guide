@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { PhoneLogin } from '@/components/auth/PhoneLogin';
 import { CustomGoogleLoginButton } from '@/components/auth/GoogleLogin';
 import { DemoFacebookLoginButton } from '@/components/auth/FacebookLogin';
+import { handleError, parseApiError, ErrorType } from '@/lib/errorHandler';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -38,9 +39,21 @@ export default function Login() {
 
     try {
       await login(email, password);
-      navigate('/');
+      navigate(from);
     } catch (err: any) {
-      setError(err.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
+      console.error('Login error:', err);
+      
+      // Parse error to provide better user experience
+      const appError = parseApiError(err);
+      
+      // For login form, show error in the form instead of toast
+      if (appError.type === ErrorType.AUTHENTICATION) {
+        setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+      } else if (appError.type === ErrorType.NETWORK) {
+        setError('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
+      } else {
+        setError(appError.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
+      }
     } finally {
       setLoading(false);
     }

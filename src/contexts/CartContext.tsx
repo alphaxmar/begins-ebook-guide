@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { api, CartItem } from '@/lib/api';
+import { api } from '@/lib/api';
 import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
+import { handleError } from '@/lib/errorHandler';
 
 interface CartContextType {
   items: CartItem[];
@@ -54,7 +55,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       setItems(response.items || []);
     } catch (error) {
       console.error('Failed to load cart:', error);
-      toast.error('ไม่สามารถโหลดตะกร้าสินค้าได้');
+      handleError(error, 'ไม่สามารถโหลดตะกร้าสินค้าได้');
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +73,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       toast.success('เพิ่มสินค้าลงตะกร้าแล้ว');
     } catch (error: any) {
       console.error('Failed to add to cart:', error);
-      toast.error(error.message || 'ไม่สามารถเพิ่มสินค้าลงตะกร้าได้');
+      handleError(error, 'ไม่สามารถเพิ่มสินค้าลงตะกร้าได้');
     }
   };
 
@@ -83,7 +84,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       toast.success('ลบสินค้าออกจากตะกร้าแล้ว');
     } catch (error: any) {
       console.error('Failed to remove from cart:', error);
-      toast.error(error.message || 'ไม่สามารถลบสินค้าออกจากตะกร้าได้');
+      handleError(error, 'ไม่สามารถลบสินค้าออกจากตะกร้าได้');
     }
   };
 
@@ -94,7 +95,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       toast.success('ล้างตะกร้าสินค้าแล้ว');
     } catch (error: any) {
       console.error('Failed to clear cart:', error);
-      toast.error(error.message || 'ไม่สามารถล้างตะกร้าสินค้าได้');
+      handleError(error, 'ไม่สามารถล้างตะกร้าสินค้าได้');
     }
   };
 

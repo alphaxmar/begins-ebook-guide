@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { prettyJSON } from 'hono/pretty-json';
+import { handleError } from './middleware/errorHandler';
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -83,11 +84,7 @@ app.notFound((c) => {
 
 // Error handler
 app.onError((err, c) => {
-  console.error('API Error:', err);
-  return c.json({ 
-    error: 'Internal Server Error',
-    message: err.message 
-  }, 500);
+  return handleError(err, c);
 });
 
 export default app;
