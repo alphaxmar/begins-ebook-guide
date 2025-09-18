@@ -1,140 +1,189 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader2, BookOpen, Eye, EyeOff, Mail, Phone, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+import { PhoneLogin } from '@/components/auth/PhoneLogin';
+import { CustomGoogleLoginButton } from '@/components/auth/GoogleLogin';
+import { DemoFacebookLoginButton } from '@/components/auth/FacebookLogin';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  
   const from = location.state?.from?.pathname || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
-      toast.error('กรุณากรอกอีเมลและรหัสผ่าน');
+      setError('กรุณากรอกอีเมลและรหัสผ่าน');
       return;
     }
 
-    setIsLoading(true);
+    setLoading(true);
+    setError('');
+
     try {
       await login(email, password);
-      toast.success('เข้าสู่ระบบสำเร็จ');
-      navigate(from, { replace: true });
-    } catch (error: any) {
-      toast.error(error.message || 'เข้าสู่ระบบไม่สำเร็จ');
+      navigate('/');
+    } catch (err: any) {
+      setError(err.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
+  const handleSocialLoginSuccess = () => {
+    navigate('/');
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">เข้าสู่ระบบ</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            เข้าสู่บัญชี Ebook Haven ของคุณ
-          </p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <Card className="w-full max-w-lg">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <BookOpen className="h-12 w-12 text-blue-600" />
+          </div>
+          <CardTitle className="text-2xl font-bold">เข้าสู่ระบบ</CardTitle>
+          <CardDescription>
+            เลือกวิธีการเข้าสู่ระบบที่คุณต้องการ
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="email" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="email" className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                อีเมล
+              </TabsTrigger>
+              <TabsTrigger value="phone" className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                เบอร์โทร
+              </TabsTrigger>
+              <TabsTrigger value="social" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Social
+              </TabsTrigger>
+            </TabsList>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>เข้าสู่ระบบ</CardTitle>
-            <CardDescription>
-              กรอกอีเมลและรหัสผ่านเพื่อเข้าสู่ระบบ
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">อีเมล</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">รหัสผ่าน</Label>
-                <div className="relative">
+            <TabsContent value="email" className="space-y-4 mt-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email">อีเมล</Label>
                   <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="รหัสผ่านของคุณ"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
                     required
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="password">รหัสผ่าน</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="รหัสผ่านของคุณ"
+                      required
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      กำลังเข้าสู่ระบบ...
+                    </>
+                  ) : (
+                    'เข้าสู่ระบบ'
+                  )}
+                </Button>
+              </form>
+
+              <Separator className="my-4" />
+              
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium text-center text-gray-700">
+                  บัญชีทดสอบ (Demo Accounts)
+                </h3>
+                <div className="grid gap-2 text-xs">
+                  <div className="p-2 bg-gray-50 rounded border">
+                    <strong>Admin:</strong> admin@ebook.com / admin123
+                  </div>
+                  <div className="p-2 bg-gray-50 rounded border">
+                    <strong>User:</strong> user@ebook.com / user123
+                  </div>
                 </div>
               </div>
+            </TabsContent>
 
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={isLoading}
-              >
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                เข้าสู่ระบบ
-              </Button>
-            </form>
+            <TabsContent value="phone" className="mt-6">
+              <PhoneLogin onSuccess={handleSocialLoginSuccess} />
+            </TabsContent>
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                ยังไม่มีบัญชี?{' '}
-                <Link 
-                  to="/register" 
-                  className="font-medium text-blue-600 hover:text-blue-500"
-                >
-                  สมัครสมาชิก
-                </Link>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Demo Accounts */}
-        <Card className="bg-blue-50 border-blue-200">
-          <CardHeader>
-            <CardTitle className="text-sm text-blue-800">บัญชีทดสอบ</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="text-xs text-blue-700">
-              <p><strong>ผู้ซื้อ:</strong> buyer@test.com / password123</p>
-              <p><strong>ผู้ขาย:</strong> seller@test.com / password123</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            <TabsContent value="social" className="space-y-4 mt-6">
+              <div className="space-y-3">
+                <CustomGoogleLoginButton onSuccess={handleSocialLoginSuccess} />
+                <DemoFacebookLoginButton onSuccess={handleSocialLoginSuccess} />
+              </div>
+              
+              <Separator className="my-4" />
+              
+              <div className="text-center text-sm text-gray-600">
+                <p>การเข้าสู่ระบบด้วย Social Media จะสร้างบัญชีใหม่โดยอัตโนมัติ</p>
+                <p>หากยังไม่เคยมีบัญชีในระบบ</p>
+              </div>
+            </TabsContent>
+          </Tabs>
+          
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              ยังไม่มีบัญชี?{' '}
+              <Link to="/register" className="text-blue-600 hover:underline">
+                สมัครสมาชิก
+              </Link>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

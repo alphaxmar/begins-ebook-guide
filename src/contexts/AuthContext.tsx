@@ -3,22 +3,10 @@ import { api, getAuthToken, setAuthToken, removeAuthToken, User } from '@/lib/ap
 
 interface AuthContextType {
   user: User | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    role?: 'buyer' | 'seller';
-  }) => Promise<void>;
+  login: (emailOrToken: string, password?: string) => Promise<void>;
+  register: (userData: RegisterData) => Promise<void>;
   logout: () => void;
-  updateProfile: (data: {
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-  }) => Promise<void>;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -60,11 +48,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loadUser();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (emailOrToken: string, password?: string) => {
     try {
-      const response = await api.login({ email, password });
-      setAuthToken(response.token);
-      setUser(response.user);
+      // If password is provided, it's email/password login
+      if (password) {
+        const response = await api.login({ email: emailOrToken, password });
+        setAuthToken(response.token);
+        setUser(response.user);
+      } else {
+        // If no password, it's token-based login (from social/phone login)
+        const token = emailOrToken;
+        setAuthToken(token);
+        const response = await api.getProfile();
+        setUser(response.user);
+      }
     } catch (error) {
       throw error;
     }
